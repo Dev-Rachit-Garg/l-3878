@@ -4,6 +4,8 @@ import { Send, Youtube } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import VideoSummary from '@/components/VideoSummary';
 import ChatInterface from '@/components/ChatInterface';
+import Terminal from '@/components/Terminal';
+import FeatureList from '@/components/FeatureList';
 
 const Index = () => {
   const [url, setUrl] = useState('');
@@ -38,7 +40,7 @@ const Index = () => {
     <div className="min-h-screen bg-arcade-dark text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-arcade-purple to-arcade-pink bg-clip-text text-transparent">
               YouTube Summary & Chat
@@ -48,6 +50,12 @@ const Index = () => {
             Enter a YouTube URL to get an AI-powered summary and chat about the content
           </p>
         </div>
+
+        {/* Features Section */}
+        <FeatureList />
+
+        {/* Terminal Section */}
+        <Terminal />
 
         {/* URL Input Form */}
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-8">
