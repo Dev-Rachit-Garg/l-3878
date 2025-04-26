@@ -51,12 +51,6 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Features Section */}
-        <FeatureList />
-
-        {/* Terminal Section */}
-        <Terminal />
-
         {/* URL Input Form */}
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-8">
           <div className="relative">
@@ -76,6 +70,12 @@ const Index = () => {
             </button>
           </div>
         </form>
+
+        {/* Features Section */}
+        <FeatureList />
+
+        {/* Terminal Section */}
+        <Terminal />
 
         {/* Main Content */}
         {videoInfo && (
