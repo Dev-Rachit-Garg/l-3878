@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Send, Youtube } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -6,6 +5,7 @@ import VideoSummary from '@/components/VideoSummary';
 import ChatInterface from '@/components/ChatInterface';
 import Terminal from '@/components/Terminal';
 import FeatureList from '@/components/FeatureList';
+import APIKeyInput from '@/components/APIKeyInput';
 
 const Index = () => {
   const [url, setUrl] = useState('');
@@ -50,6 +50,9 @@ const Index = () => {
             Enter a YouTube URL to get an AI-powered summary and chat about the content
           </p>
         </div>
+
+        {/* API Key Input */}
+        <APIKeyInput />
 
         {/* URL Input Form */}
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-8">
