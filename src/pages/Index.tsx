@@ -1,68 +1,82 @@
 
-import { useEffect, useState } from 'react';
-import Header from '@/components/Header';
-import Terminal from '@/components/Terminal';
-import EmailForm from '@/components/EmailForm';
-import FeatureCard from '@/components/FeatureCard';
-import { MessageSquare, Code, Play } from 'lucide-react';
+import { useState } from 'react';
+import { Send, Youtube } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import VideoSummary from '@/components/VideoSummary';
+import ChatInterface from '@/components/ChatInterface';
 
 const Index = () => {
-  const [loaded, setLoaded] = useState(false);
+  const [url, setUrl] = useState('');
+  const [videoInfo, setVideoInfo] = useState<null | { title: string; thumbnail: string }>(null);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // Add small delay before starting animations
-    const timer = setTimeout(() => {
-      setLoaded(true);
-    }, 100);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid YouTube URL",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    // For now, simulate video info (you'll need to implement actual YouTube API integration)
+    setVideoInfo({
+      title: "Sample Video Title",
+      thumbnail: "https://i.ytimg.com/vi/default/hqdefault.jpg"
+    });
+
+    toast({
+      title: "Processing video",
+      description: "Getting video transcript and generating summary...",
+    });
+  };
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden bg-arcade-dark">
-      <div className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
-        <Header />
-        
-        <div className={`mt-16 mb-12 text-center transition-opacity duration-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            <span className="gradient-text">Create Games With Just a Prompt</span>
-          </h2>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Type a prompt, get a playable game instantly. No coding required.
+    <div className="min-h-screen bg-arcade-dark text-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-arcade-purple to-arcade-pink bg-clip-text text-transparent">
+              YouTube Summary & Chat
+            </span>
+          </h1>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Enter a YouTube URL to get an AI-powered summary and chat about the content
           </p>
         </div>
-        
-        <Terminal />
-        
-        <EmailForm />
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-16 mb-16">
-          <FeatureCard 
-            icon={<MessageSquare size={28} />}
-            title="Chat to Create"
-            description="Simply describe your game idea in natural language and watch it come to life"
-            delay="delay-100"
-          />
-          
-          <FeatureCard 
-            icon={<Code size={28} />}
-            title="No Coding Required"
-            description="Create complex games without writing a single line of code"
-            delay="delay-300"
-          />
-          
-          <FeatureCard 
-            icon={<Play size={28} />}
-            title="Instantly Playable"
-            description="Get a working game in seconds that you can play and share immediately"
-            delay="delay-500"
-          />
-        </div>
+
+        {/* URL Input Form */}
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-8">
+          <div className="relative">
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Paste YouTube URL here..."
+              className="w-full bg-arcade-terminal border border-gray-700 rounded-lg pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-arcade-purple"
+            />
+            <Youtube className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-arcade-purple hover:bg-opacity-90 p-2 rounded-md"
+            >
+              <Send size={20} />
+            </button>
+          </div>
+        </form>
+
+        {/* Main Content */}
+        {videoInfo && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <VideoSummary videoInfo={videoInfo} />
+            <ChatInterface />
+          </div>
+        )}
       </div>
-      
-      <footer className="py-6 border-t border-gray-800 text-center text-sm text-gray-500">
-        <p>© 2025 Engine Arcade. All rights reserved.</p>
-      </footer>
     </div>
   );
 };
