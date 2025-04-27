@@ -64,10 +64,17 @@ const VideoSummary = ({ videoInfo }: VideoSummaryProps) => {
         },
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
-          messages: [{
-            role: "user",
-            content: `Summarize this YouTube video transcript in about 150 words: ${transcriptText.substring(0, 4000)}`
-          }],
+          messages: [
+            {
+              role: "system",
+              content: "You are an assistant that summarizes YouTube transcripts into short and clear Hindi summaries."
+            },
+            {
+              role: "user",
+              content: `Please summarize this transcript in Hindi:\n\n${transcriptText.substring(0, 4000)}`
+            }
+          ],
+          temperature: 0.5,
         }),
       });
 
@@ -98,15 +105,15 @@ const VideoSummary = ({ videoInfo }: VideoSummaryProps) => {
         className="w-full rounded-lg mb-4"
       />
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Summary</h3>
+        <h3 className="text-lg font-medium">Hindi Summary</h3>
         <div className="text-gray-300 min-h-[100px]">
           {loading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="animate-spin" />
-              <span>Fetching transcript and generating summary...</span>
+              <span>Fetching transcript and generating Hindi summary...</span>
             </div>
           ) : summary ? (
-            <p>{summary}</p>
+            <p className="whitespace-pre-line">{summary}</p>
           ) : (
             <p>Waiting for summary generation...</p>
           )}
