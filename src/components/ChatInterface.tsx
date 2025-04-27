@@ -1,13 +1,18 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-const ChatInterface = () => {
+interface ChatInterfaceProps {
+  videoId?: string;
+  transcript?: string;
+}
+
+const ChatInterface = ({ videoId, transcript = "" }: ChatInterfaceProps) => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Array<{ text: string; isUser: boolean }>>([
-    { text: "Hi! I'm ready to discuss the video with you. What would you like to know?", isUser: false }
+    { text: "Hi! I'm ready to discuss this video with you. What would you like to know?", isUser: false }
   ]);
   const { toast } = useToast();
 
@@ -30,6 +35,11 @@ const ChatInterface = () => {
     setLoading(true);
 
     try {
+      // Prepare context from transcript (first 4000 chars to avoid token limits)
+      const contextPrompt = transcript 
+        ? `Context from video transcript: ${transcript.substring(0, 4000)}\n\n` 
+        : "";
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -41,11 +51,11 @@ const ChatInterface = () => {
           messages: [
             {
               role: "system",
-              content: "You are a helpful assistant discussing a YouTube video."
+              content: "You are a helpful assistant discussing a YouTube video. Use the transcript context to answer questions about the video content."
             },
             {
               role: "user",
-              content: message
+              content: contextPrompt + message
             }
           ],
         }),

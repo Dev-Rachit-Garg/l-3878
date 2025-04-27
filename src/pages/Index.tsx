@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Send, Youtube } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -6,16 +7,30 @@ import ChatInterface from '@/components/ChatInterface';
 import Terminal from '@/components/Terminal';
 import FeatureList from '@/components/FeatureList';
 import APIKeyInput from '@/components/APIKeyInput';
+import { YoutubeTranscript } from 'youtube-transcript';
 
 const Index = () => {
   const [url, setUrl] = useState('');
-  const [videoInfo, setVideoInfo] = useState<null | { title: string; thumbnail: string }>(null);
+  const [videoInfo, setVideoInfo] = useState<null | { 
+    title: string; 
+    thumbnail: string;
+    videoId: string;
+  }>(null);
+  const [transcript, setTranscript] = useState<string>('');
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const extractVideoId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+    const videoId = extractVideoId(url);
+    
+    if (!videoId) {
       toast({
         title: "Invalid URL",
         description: "Please enter a valid YouTube URL",
@@ -24,16 +39,27 @@ const Index = () => {
       return;
     }
 
-    // For now, simulate video info (you'll need to implement actual YouTube API integration)
-    setVideoInfo({
-      title: "Sample Video Title",
-      thumbnail: "https://i.ytimg.com/vi/default/hqdefault.jpg"
-    });
-
     toast({
       title: "Processing video",
       description: "Getting video transcript and generating summary...",
     });
+
+    try {
+      // Get video details
+      // For a full implementation, you would use YouTube Data API
+      // For this example, we're creating a simple title from the ID
+      setVideoInfo({
+        title: `Video: ${videoId}`,
+        thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        videoId: videoId
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process video URL",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -84,7 +110,7 @@ const Index = () => {
         {videoInfo && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
             <VideoSummary videoInfo={videoInfo} />
-            <ChatInterface />
+            <ChatInterface videoId={videoInfo.videoId} transcript={transcript} />
           </div>
         )}
       </div>
