@@ -96,8 +96,15 @@ const Index = () => {
           </p>
         </div>
 
-        {/* API Key Input */}
-        <APIKeyInput />
+        {/* API Key Input - Now hidden by default since we have a pre-configured key */}
+        <div className="mb-2 max-w-2xl mx-auto">
+          <details className="text-sm text-gray-400">
+            <summary className="cursor-pointer hover:text-gray-300">API Key Settings (Optional)</summary>
+            <div className="pt-2">
+              <APIKeyInput />
+            </div>
+          </details>
+        </div>
 
         {/* URL Input Form */}
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-8">
