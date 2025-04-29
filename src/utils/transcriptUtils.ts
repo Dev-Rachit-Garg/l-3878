@@ -4,7 +4,7 @@ import * as YouTubeTranscript from 'youtube-transcript';
 export const fetchTranscript = async (videoId: string): Promise<string> => {
   try {
     // First attempt: Use the youtube-transcript package
-    const transcriptItems = await YouTubeTranscript.default.fetchTranscript(videoId);
+    const transcriptItems = await YouTubeTranscript.fetchTranscript(videoId);
     
     if (transcriptItems && transcriptItems.length > 0) {
       // Convert transcript items to a single string
