@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Captions, FileText } from 'lucide-react';
-import { Button } from './ui/button';
 import { fetchTranscript } from '@/utils/transcriptUtils';
+import TranscriptErrorNotice from './video/TranscriptErrorNotice';
+import VideoSummaryContent from './video/VideoSummaryContent';
+import DownloadTranscriptButton from './video/DownloadTranscriptButton';
 
 interface VideoSummaryProps {
   videoInfo: {
@@ -115,47 +116,15 @@ const VideoSummary = ({ videoInfo, onTranscriptLoaded }: VideoSummaryProps) => {
     }
   };
 
-  const downloadTranscript = () => {
-    if (!transcript) {
-      toast({
-        title: "No Transcript Available",
-        description: "Please wait for the transcript to load first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const blob = new Blob([transcript], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.style.display = "none";
-    a.href = url;
-    a.download = `${videoInfo.title.replace(/[^\w\s]/gi, '')}_transcript.txt`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-
-    toast({
-      title: "Transcript Downloaded",
-      description: "The transcript has been downloaded successfully.",
-    });
-  };
-
   return (
     <div className="bg-arcade-terminal/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">{videoInfo.title}</h2>
-        <Button 
-          onClick={downloadTranscript} 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-2 border-arcade-purple text-arcade-purple hover:bg-arcade-purple/10"
+        <DownloadTranscriptButton 
+          transcript={transcript}
           disabled={loading || !transcript}
-        >
-          <FileText size={16} />
-          Download Transcript
-        </Button>
+          videoTitle={videoInfo.title}
+        />
       </div>
       
       <img
@@ -164,38 +133,9 @@ const VideoSummary = ({ videoInfo, onTranscriptLoaded }: VideoSummaryProps) => {
         className="w-full rounded-lg mb-4"
       />
 
-      {transcriptError && (
-        <div className="bg-orange-900/30 border border-orange-800 rounded-lg p-4 mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Captions className="text-orange-400" />
-            <h3 className="text-lg font-medium text-orange-400">Transcript Issue</h3>
-          </div>
-          <p className="text-orange-200">{transcriptError}</p>
-          <div className="mt-3 text-sm text-orange-300">
-            <p>Using fallback transcript for demonstration. In a production app:</p>
-            <ul className="list-disc ml-5 mt-1">
-              <li>Use a proper backend service to fetch YouTube transcripts</li>
-              <li>Create your own API endpoint to avoid CORS restrictions</li>
-            </ul>
-          </div>
-        </div>
-      )}
+      {transcriptError && <TranscriptErrorNotice error={transcriptError} />}
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Hindi Summary</h3>
-        <div className="text-gray-300 min-h-[100px]">
-          {loading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="animate-spin" />
-              <span>Fetching transcript and generating Hindi summary...</span>
-            </div>
-          ) : summary ? (
-            <p className="whitespace-pre-line">{summary}</p>
-          ) : (
-            <p>Waiting for summary generation...</p>
-          )}
-        </div>
-      </div>
+      <VideoSummaryContent loading={loading} summary={summary} />
     </div>
   );
 };
