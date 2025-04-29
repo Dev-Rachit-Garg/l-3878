@@ -1,5 +1,5 @@
 
-import YouTubeTranscript from 'youtube-transcript';
+import * as YouTubeTranscript from 'youtube-transcript';
 
 export const fetchTranscript = async (videoId: string): Promise<string> => {
   try {
