@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Captions, FileText } from 'lucide-react';
 import { Button } from './ui/button';
+import { fetchTranscript } from '@/utils/transcriptUtils';
 
 interface VideoSummaryProps {
   videoInfo: {
@@ -21,48 +22,24 @@ const VideoSummary = ({ videoInfo, onTranscriptLoaded }: VideoSummaryProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchTranscript = async () => {
+    const getTranscript = async () => {
       setLoading(true);
       setTranscriptError(null);
       
       try {
-        // In a real production setting, this would be a call to a backend API
-        const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://youtubetranscript.com/?server_vid=${videoInfo.videoId}`)}`)
-        const data = await response.text();
-        
-        let extractedTranscript = "";
-        
-        try {
-          // Extract the transcript from the response
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(data, "text/html");
-          const transcriptElements = doc.querySelectorAll(".transcript-text");
-          
-          if (transcriptElements.length > 0) {
-            extractedTranscript = Array.from(transcriptElements)
-              .map(el => el.textContent)
-              .join(' ');
-          } else {
-            throw new Error("Could not find transcript elements");
-          }
-        } catch (parseError) {
-          console.error("Error parsing transcript:", parseError);
-          // Fallback to sample transcript if parsing fails
-          extractedTranscript = "This is a sample transcript for demonstration purposes. In a real application, you would fetch the actual transcript from YouTube via a proper backend service.";
-        }
-        
-        setTranscript(extractedTranscript);
+        const transcriptText = await fetchTranscript(videoInfo.videoId);
+        setTranscript(transcriptText);
         
         // Pass transcript to parent component for chat functionality
         if (onTranscriptLoaded) {
-          onTranscriptLoaded(extractedTranscript);
+          onTranscriptLoaded(transcriptText);
         }
         
         // Generate summary with the transcript
-        await generateSummary(extractedTranscript);
+        await generateSummary(transcriptText);
       } catch (error) {
         console.error("Error fetching transcript:", error);
-        setTranscriptError("Failed to fetch video transcript. Using proxy service failed.");
+        setTranscriptError("Failed to fetch video transcript. Using fallback transcript.");
         toast({
           title: "Transcript Error",
           description: "Failed to fetch video transcript. Using fallback transcript.",
@@ -81,7 +58,7 @@ const VideoSummary = ({ videoInfo, onTranscriptLoaded }: VideoSummaryProps) => {
       }
     };
 
-    fetchTranscript();
+    getTranscript();
   }, [videoInfo, toast, onTranscriptLoaded]);
 
   const generateSummary = async (transcriptText: string) => {
