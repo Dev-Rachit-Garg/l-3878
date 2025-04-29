@@ -7,7 +7,6 @@ import ChatInterface from '@/components/ChatInterface';
 import Terminal from '@/components/Terminal';
 import FeatureList from '@/components/FeatureList';
 import APIKeyInput from '@/components/APIKeyInput';
-import { YoutubeTranscript } from 'youtube-transcript';
 
 const Index = () => {
   const [url, setUrl] = useState('');
@@ -45,11 +44,11 @@ const Index = () => {
     });
 
     try {
-      // Get video details
       // For a full implementation, you would use YouTube Data API
-      // For this example, we're creating a simple title from the ID
+      const videoTitle = await fetchVideoTitle(videoId);
+      
       setVideoInfo({
-        title: `Video: ${videoId}`,
+        title: videoTitle || `Video: ${videoId}`,
         thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
         videoId: videoId
       });
@@ -60,6 +59,26 @@ const Index = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const fetchVideoTitle = async (videoId: string): Promise<string> => {
+    try {
+      // Try to fetch the video title from a CORS proxy
+      const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.title || `YouTube Video: ${videoId}`;
+      }
+    } catch (error) {
+      console.error("Error fetching video title:", error);
+    }
+    
+    return `YouTube Video: ${videoId}`;
+  };
+
+  const handleTranscriptLoaded = (loadedTranscript: string) => {
+    setTranscript(loadedTranscript);
   };
 
   return (
@@ -109,8 +128,14 @@ const Index = () => {
         {/* Main Content */}
         {videoInfo && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-            <VideoSummary videoInfo={videoInfo} />
-            <ChatInterface videoId={videoInfo.videoId} transcript={transcript} />
+            <VideoSummary 
+              videoInfo={videoInfo} 
+              onTranscriptLoaded={handleTranscriptLoaded} 
+            />
+            <ChatInterface 
+              videoId={videoInfo.videoId} 
+              transcript={transcript} 
+            />
           </div>
         )}
       </div>

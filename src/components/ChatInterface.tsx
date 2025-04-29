@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface ChatInterfaceProps {
@@ -35,10 +35,10 @@ const ChatInterface = ({ videoId, transcript = "" }: ChatInterfaceProps) => {
     setLoading(true);
 
     try {
-      // Prepare context from transcript (first 4000 chars to avoid token limits)
+      // Create contextual prompt with transcript
       const contextPrompt = transcript 
-        ? `Context from video transcript: ${transcript.substring(0, 4000)}\n\n` 
-        : "";
+        ? `This is the transcript of a YouTube video. Please answer the following question based on it.\n\nTranscript:\n${transcript.substring(0, 4000)}\n\nQuestion: ${message}`
+        : message;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -51,13 +51,14 @@ const ChatInterface = ({ videoId, transcript = "" }: ChatInterfaceProps) => {
           messages: [
             {
               role: "system",
-              content: "You are a helpful assistant discussing a YouTube video. Use the transcript context to answer questions about the video content."
+              content: "You are an assistant that can chat based on YouTube video transcripts."
             },
             {
               role: "user",
-              content: contextPrompt + message
+              content: contextPrompt
             }
           ],
+          temperature: 0.7,
         }),
       });
 
@@ -71,6 +72,7 @@ const ChatInterface = ({ videoId, transcript = "" }: ChatInterfaceProps) => {
         isUser: false 
       }]);
     } catch (error) {
+      console.error("Error chatting with AI:", error);
       toast({
         title: "Error",
         description: "Failed to get response. Please check your API key.",
@@ -84,6 +86,16 @@ const ChatInterface = ({ videoId, transcript = "" }: ChatInterfaceProps) => {
 
   return (
     <div className="bg-arcade-terminal/50 backdrop-blur-sm rounded-xl border border-gray-800 flex flex-col h-[600px]">
+      <div className="flex items-center justify-between p-4 border-b border-gray-800">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="text-arcade-purple" />
+          <h3 className="font-medium">Chat about this video</h3>
+        </div>
+        <div className="text-xs text-gray-400">
+          Using transcript context to provide relevant answers
+        </div>
+      </div>
+      
       <div className="flex-1 p-6 overflow-y-auto space-y-4">
         {messages.map((msg, index) => (
           <div

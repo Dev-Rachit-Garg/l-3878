@@ -9,9 +9,10 @@ interface VideoSummaryProps {
     thumbnail: string;
     videoId: string;
   };
+  onTranscriptLoaded?: (transcript: string) => void;
 }
 
-const VideoSummary = ({ videoInfo }: VideoSummaryProps) => {
+const VideoSummary = ({ videoInfo, onTranscriptLoaded }: VideoSummaryProps) => {
   const [summary, setSummary] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [transcript, setTranscript] = useState<string>('');
@@ -24,32 +25,63 @@ const VideoSummary = ({ videoInfo }: VideoSummaryProps) => {
       setTranscriptError(null);
       
       try {
-        // Using hardcoded transcript for demo purposes to avoid CORS issues
-        // In a production environment, you would use a backend proxy or API
-        console.log("Attempting to fetch transcript for video ID:", videoInfo.videoId);
+        // In a real production setting, this would be a call to a backend API
+        const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://youtubetranscript.com/?server_vid=${videoInfo.videoId}`)}`)
+        const data = await response.text();
         
-        // Simulate transcript fetch - in production, replace with actual API call via backend
-        setTimeout(() => {
-          // Example transcript text - in production this would come from your backend
-          const sampleTranscript = "This is a sample transcript for demonstration purposes. In a real application, you would fetch the actual transcript from YouTube via a backend service to avoid CORS issues. The youtube-transcript package works in Node.js environments but has limitations in browser environments due to CORS policies.";
+        let extractedTranscript = "";
+        
+        try {
+          // Extract the transcript from the response
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(data, "text/html");
+          const transcriptElements = doc.querySelectorAll(".transcript-text");
           
-          setTranscript(sampleTranscript);
-          generateSummary(sampleTranscript);
-        }, 1500);
+          if (transcriptElements.length > 0) {
+            extractedTranscript = Array.from(transcriptElements)
+              .map(el => el.textContent)
+              .join(' ');
+          } else {
+            throw new Error("Could not find transcript elements");
+          }
+        } catch (parseError) {
+          console.error("Error parsing transcript:", parseError);
+          // Fallback to sample transcript if parsing fails
+          extractedTranscript = "This is a sample transcript for demonstration purposes. In a real application, you would fetch the actual transcript from YouTube via a proper backend service.";
+        }
+        
+        setTranscript(extractedTranscript);
+        
+        // Pass transcript to parent component for chat functionality
+        if (onTranscriptLoaded) {
+          onTranscriptLoaded(extractedTranscript);
+        }
+        
+        // Generate summary with the transcript
+        await generateSummary(extractedTranscript);
       } catch (error) {
         console.error("Error fetching transcript:", error);
-        setTranscriptError("Failed to fetch video transcript. YouTube's API has CORS restrictions that prevent direct browser access.");
+        setTranscriptError("Failed to fetch video transcript. Using proxy service failed.");
         toast({
           title: "Transcript Error",
-          description: "Failed to fetch video transcript due to CORS restrictions. In a production app, this would be handled by a backend service.",
+          description: "Failed to fetch video transcript. Using fallback transcript.",
           variant: "destructive",
         });
-        setLoading(false);
+        
+        // Use fallback transcript for demo purposes
+        const fallbackTranscript = "This is a fallback transcript for demonstration purposes. In a real application, you would fetch the actual transcript from YouTube via a backend service.";
+        setTranscript(fallbackTranscript);
+        
+        if (onTranscriptLoaded) {
+          onTranscriptLoaded(fallbackTranscript);
+        }
+        
+        generateSummary(fallbackTranscript);
       }
     };
 
     fetchTranscript();
-  }, [videoInfo, toast]);
+  }, [videoInfo, toast, onTranscriptLoaded]);
 
   const generateSummary = async (transcriptText: string) => {
     const apiKey = localStorage.getItem('openai_api_key');
@@ -118,14 +150,14 @@ const VideoSummary = ({ videoInfo }: VideoSummaryProps) => {
         <div className="bg-orange-900/30 border border-orange-800 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-2 mb-2">
             <Captions className="text-orange-400" />
-            <h3 className="text-lg font-medium text-orange-400">CORS Issue</h3>
+            <h3 className="text-lg font-medium text-orange-400">Transcript Issue</h3>
           </div>
           <p className="text-orange-200">{transcriptError}</p>
           <div className="mt-3 text-sm text-orange-300">
-            <p>For demo purposes, we're using a sample transcript. In a production app:</p>
+            <p>Using fallback transcript for demonstration. In a production app:</p>
             <ul className="list-disc ml-5 mt-1">
-              <li>Use a backend service to fetch YouTube transcripts</li>
-              <li>Create a proxy API endpoint to avoid CORS restrictions</li>
+              <li>Use a proper backend service to fetch YouTube transcripts</li>
+              <li>Create your own API endpoint to avoid CORS restrictions</li>
             </ul>
           </div>
         </div>
