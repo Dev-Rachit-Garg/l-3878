@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Captions } from 'lucide-react';
+import { Loader2, Captions, FileText } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface VideoSummaryProps {
   videoInfo: {
@@ -137,9 +138,49 @@ const VideoSummary = ({ videoInfo, onTranscriptLoaded }: VideoSummaryProps) => {
     }
   };
 
+  const downloadTranscript = () => {
+    if (!transcript) {
+      toast({
+        title: "No Transcript Available",
+        description: "Please wait for the transcript to load first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const blob = new Blob([transcript], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.style.display = "none";
+    a.href = url;
+    a.download = `${videoInfo.title.replace(/[^\w\s]/gi, '')}_transcript.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    toast({
+      title: "Transcript Downloaded",
+      description: "The transcript has been downloaded successfully.",
+    });
+  };
+
   return (
     <div className="bg-arcade-terminal/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
-      <h2 className="text-xl font-semibold mb-4">{videoInfo.title}</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">{videoInfo.title}</h2>
+        <Button 
+          onClick={downloadTranscript} 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-2 border-arcade-purple text-arcade-purple hover:bg-arcade-purple/10"
+          disabled={loading || !transcript}
+        >
+          <FileText size={16} />
+          Download Transcript
+        </Button>
+      </div>
+      
       <img
         src={videoInfo.thumbnail}
         alt={videoInfo.title}
